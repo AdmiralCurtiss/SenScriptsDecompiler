@@ -1,0 +1,34 @@
+{
+  "configurations": [
+    {
+      "name": "Release",
+      "configurationType": "Release",
+      "generator": "Ninja",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildCommandArgs": "",
+      "buildRoot": "${workspaceRoot}\\Build\\${name}",
+      "cmakeCommandArgs": "",
+      "variables": [
+        {
+          "name": "CMAKE_PREFIX_PATH",
+          "value": "c:\\qt\\Qt5.15.0\\msvc2019_64"
+        }
+      ]
+    },
+    {
+      "name": "Debug",
+      "configurationType": "Debug",
+      "generator": "Ninja",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildCommandArgs": "",
+      "buildRoot": "${workspaceRoot}\\Build\\${name}",
+      "cmakeCommandArgs": "",
+      "variables": [
+        {
+          "name": "CMAKE_PREFIX_PATH",
+          "value": "c:\\qt\\Qt5.15.0\\msvc2019_64"
+        }
+      ]
+    }
+  ]
+}
