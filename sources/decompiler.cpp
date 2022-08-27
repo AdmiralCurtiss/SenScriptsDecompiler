@@ -1,3 +1,5 @@
+#include <string>
+
 #include "headers/decompiler.h"
 #include "headers/CS1InstructionsSet.h"
 #include "headers/CS2InstructionsSet.h"
@@ -370,7 +372,7 @@ bool Decompiler::read_file(const fs::path& filepath) {
 bool Decompiler::write_file(const fs::path& filepath, const fs::path& output_dir) {
 
     if (filepath.extension() == ".dat") {
-        write_xlsx(output_dir);
+        write_textdump(output_dir);
     } else if (filepath.extension() == ".xlsx") {
         write_dat(output_dir);
     } else {
@@ -380,3 +382,46 @@ bool Decompiler::write_file(const fs::path& filepath, const fs::path& output_dir
     return true;
 }
 TranslationFile Decompiler::get_tf() { return current_tf; }
+
+
+bool Decompiler::write_textdump(const std::filesystem::path& output_dir) {
+    std::string output;
+
+    output += _game;
+    output += '\n';
+    output += current_tf.getName();
+    output += '\n';
+    
+    int excel_row = 4;
+    for (const auto& fun : current_tf.FunctionsInFile) {
+        output += "function ";
+        output += fun.name;
+        output += "() {\n";
+
+        for (const auto& instr : fun.InstructionsInFunction) {
+            //output += "Location ";
+            //output += std::to_string(instr->get_addr_instr());
+            //output += '\n';
+
+            int col = 0;
+            instr->WriteTextDump(output, current_tf.FunctionsInFile, 0, col);
+        }
+
+        output += '}';
+        output += '\n';
+        output += '\n';
+        output += '\n';
+    }
+
+    fs::path filename = current_tf.getName() + ".txt";
+    fs::path output_file = output_dir / filename;
+    if (!fs::exists(output_dir)) fs::create_directories(output_dir);
+
+    FILE* f = fopen(output_file.string().c_str(), "wb");
+    if (f) {
+        fwrite(output.c_str(), 1, output.size(), f);
+        fclose(f);
+    }
+
+    return true;
+}

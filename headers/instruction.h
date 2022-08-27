@@ -1,5 +1,8 @@
 #ifndef INSTRUCTION_H
 #define INSTRUCTION_H
+
+#include <string>
+
 #include "headers/Builder.h"
 #include "headers/operande.h"
 #include <QDebug>
@@ -19,6 +22,7 @@ class Instruction {
     Instruction(int& addr, int idx_row, QXlsx::Document& excelScenarioSheet, std::string name, uint OP, Builder* Maker);
     virtual ~Instruction();
     virtual int WriteXLSX(QXlsx::Document& excelScenarioSheet, std::vector<function> funs, int row, int& col);
+    virtual int WriteTextDump(std::string& output, std::vector<function> funs, int row, int& col);
     virtual void WriteDat();
     void AddOperande(operande op);
     int get_length_in_bytes();

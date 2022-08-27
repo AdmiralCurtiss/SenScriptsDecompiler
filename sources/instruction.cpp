@@ -324,6 +324,134 @@ int Instruction::WriteXLSX(QXlsx::Document& excelScenarioSheet, std::vector<func
 
     return col_cnt;
 }
+
+int Instruction::WriteTextDump(std::string& output, std::vector<function> funs, int row, int& col) {
+    if (error) {
+        output += "ERROR!\n";
+    }
+    //output += "OP Code ";
+    //output += std::to_string(OPCode);
+    //output += '\n';
+
+    int col_cnt = 0;
+    for (auto& operande : operandes) {
+
+        QString type = QString::fromStdString(operande.getType());
+        QByteArray Value = operande.getValue();
+
+        if (type == "int") {
+            //excelScenarioSheet.write(row, col + 3 + col_cnt, type, FormatType);
+            //excelScenarioSheet.write(row + 1, col + 3 + col_cnt, ReadIntegerFromByteArray(0, Value), FormatInstr);
+            col_cnt++;
+
+        } else if (type == "header") {
+            //uint32_t header_value = ReadIntegerFromByteArray(0, Value);
+            //uint8_t length_byte = header_value >> 0x18;
+            //uint32_t group_id = header_value & 0xFFFFFF;
+            //excelScenarioSheet.write(row, col + 3 + col_cnt, "Group ID", FormatType);
+            //excelScenarioSheet.write(row + 1, col + 3 + col_cnt, group_id, FormatInstr);
+            col_cnt++;
+            //excelScenarioSheet.write(row, col + 3 + col_cnt, "Length", FormatType);
+            //excelScenarioSheet.write(row + 1, col + 3 + col_cnt, length_byte, FormatInstr);
+            col_cnt++;
+        } else if (type == "float") {
+            //excelScenarioSheet.write(row, col + 3 + col_cnt, type, FormatType);
+            //excelScenarioSheet.write(row + 1, col + 3 + col_cnt, QByteArrayToFloat(Value), FormatInstr);
+            col_cnt++;
+        } else if (type == "short") {
+            //excelScenarioSheet.write(row, col + 3 + col_cnt, type, FormatType);
+            //excelScenarioSheet.write(row + 1, col + 3 + col_cnt, (uint16_t)ReadShortFromByteArray(0, Value), FormatInstr);
+            col_cnt++;
+        } else if (type == "byte") {
+            //excelScenarioSheet.write(row, col + 3 + col_cnt, type, FormatType);
+            //excelScenarioSheet.write(row + 1, col + 3 + col_cnt, (unsigned char)Value[0], FormatInstr);
+            col_cnt++;
+        } else if (type == "fill") {
+            //excelScenarioSheet.write(row, col + 3 + col_cnt, type, FormatType);
+            //excelScenarioSheet.write(row + 1,
+            //                         col + 3 + col_cnt,
+            //                         "=" + QString::number(operande.getBytesToFill()) + "-LENB(INDIRECT(ADDRESS(" +
+            //                           QString::number(row + 1) + "," + QString::number(3 + col_cnt - 1) + ")))",
+            //                         FormatInstr);
+            col_cnt++;
+        } else if (type == "bytearray") {
+            for (auto&& idx_byte : Value) {
+                //excelScenarioSheet.write(row, col + 3 + col_cnt, type, FormatType);
+                //excelScenarioSheet.write(row + 1, col + 3 + col_cnt, (unsigned char)idx_byte, FormatInstr);
+                col_cnt++;
+            }
+        } else if (type == "instruction") {
+            int addr = 0;
+            //excelScenarioSheet.write(row, col + 3 + col_cnt, "Start", FormatStartEnd);
+            //excelScenarioSheet.write(row + 1, col + 3 + col_cnt, "", FormatStartEnd);
+            col_cnt++;
+
+            std::shared_ptr<Instruction> instr = Maker->CreateInstructionFromDAT(
+              addr, Value, 0); // function type is 0 here because sub05 is only called by OP Code instructions.
+            int column_instr = col + 3 + col_cnt - 2;
+            int cnt = instr->WriteTextDump(output, funs, row, column_instr);
+            col = col + cnt + 1;
+
+            //excelScenarioSheet.write(row, col + 3 + col_cnt, "End", FormatStartEnd);
+            //excelScenarioSheet.write(row + 1, col + 3 + col_cnt, "", FormatStartEnd);
+            col_cnt++;
+
+        } else if ((type == "string") || (type == "dialog")) {
+            //excelScenarioSheet.write(row, col + 3 + col_cnt, type, FormatType);
+            QByteArray value_;
+
+            // we remove the null terminator because it seems to mess up the encoding when using shift-jis?
+            // difference between dialog and string is that dialog is not null terminated (in the dat it's ended with 0x02)
+            if (type == "string")
+                value_ = Value.mid(0, Value.size() - 1);
+            else
+                value_ = Value.mid(0, Value.size());
+
+            value_.replace(1, "\n");
+
+            QTextCodec* codec = QTextCodec::codecForName(QString::fromStdString(InputDatFileEncoding).toUtf8());
+
+            QString string = codec->toUnicode(value_);
+
+            output += '{';
+            output += type.toStdString();
+            output += '}';
+            output += ' ';
+            for (char ch : string.toStdString()) {
+                if (ch == '\n') {
+                    output += "{n}";
+                } else {
+                    output += ch;
+                }
+            }
+            output += '\n';
+
+            //excelScenarioSheet.write(row + 1, col + 3 + col_cnt, string, FormatInstr);
+            col_cnt++;
+        } else if (type == "pointer") {
+            //excelScenarioSheet.write(row, col + 3 + col_cnt, type, FormatType);
+            int ID = funs[0].ID;
+            size_t nb_row = 3;
+            int idx_fun = 0;
+            while (ID != operande.getDestination().FunctionID) {
+
+                nb_row = nb_row + 1; // row with function name
+                nb_row = nb_row + 2 * funs[idx_fun].InstructionsInFunction.size();
+                idx_fun++;
+                ID = funs[idx_fun].ID;
+            }
+            nb_row = nb_row + 1; // row with function name
+            nb_row = nb_row + static_cast<uint64_t>(2 * (operande.getDestination().InstructionID + 1));
+            QString ptrExcel = "=A" + QString::number((nb_row));
+
+            //excelScenarioSheet.write(row + 1, col + 3 + col_cnt, ptrExcel, format);
+            col_cnt++;
+        }
+    }
+
+    return col_cnt;
+}
+
 void Instruction::set_addr_instr(int i) { addr_instr = i; }
 /*This version of AddOperande is supposed to check if a string contain illegal xml characters,
 but I didn't finish it yet.
