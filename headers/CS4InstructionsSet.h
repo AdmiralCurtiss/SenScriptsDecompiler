@@ -397,7 +397,11 @@ class CS4Builder : public Builder {
                 fill.setBytesToFill(0x20);
                 this->AddOperande(fill);
 
-                current_byte = content[addr];
+                if (addr < content.size()) {
+                    current_byte = content[addr];
+                } else {
+                    break;
+                }
             }
         }
     };
@@ -2740,8 +2744,10 @@ class CS4Builder : public Builder {
 
                     break;
                 }
-                default:
-                    qFatal("Byte not analyzed yet");
+                default: {
+                    //qFatal("Byte not analyzed yet");
+                    break;
+                }
             }
         }
     };

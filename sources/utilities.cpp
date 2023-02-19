@@ -46,12 +46,14 @@ std::string ReadStringFromByteArray(int start_pos, const QByteArray& content) {
 }
 QByteArray ReadStringSubByteArray(const QByteArray& content, int& addr) {
     QByteArray result;
-    while (content.at(addr) != 0) {
+    while (addr < content.size() && content.at(addr) != 0) {
         result.push_back(content.at(addr));
         addr++;
     }
-    result.push_back(content.at(addr)); // should be the null byte
-    addr++;
+    if (addr < content.size()) {
+        result.push_back(content.at(addr)); // should be the null byte
+        addr++;
+    }
     return result;
 }
 int ReadIntegerFromByteArray(int start_pos, const QByteArray& content) {
