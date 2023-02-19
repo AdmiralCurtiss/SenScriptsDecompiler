@@ -30,7 +30,7 @@ class Decompiler {
     bool read_file(const std::filesystem::path& filepath);
     bool update_current_tf();
     bool write_xlsx(const std::filesystem::path& output_dir);
-    bool write_textdump(const std::filesystem::path& output_dir);
+    bool write_textdump(const std::filesystem::path& infilepath, const std::filesystem::path& output_dir);
     bool write_dat(const std::filesystem::path& output_dir);
     bool check_all_files(const std::filesystem::path& log_filename,
                          const std::vector<std::filesystem::path>& files_to_read,

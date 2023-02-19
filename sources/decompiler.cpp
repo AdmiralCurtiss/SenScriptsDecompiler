@@ -372,7 +372,8 @@ bool Decompiler::read_file(const fs::path& filepath) {
 bool Decompiler::write_file(const fs::path& filepath, const fs::path& output_dir) {
 
     if (filepath.extension() == ".dat") {
-        write_textdump(output_dir);
+        //write_xlsx(output_dir);
+        write_textdump(filepath, output_dir);
     } else if (filepath.extension() == ".xlsx") {
         write_dat(output_dir);
     } else {
@@ -384,7 +385,7 @@ bool Decompiler::write_file(const fs::path& filepath, const fs::path& output_dir
 TranslationFile Decompiler::get_tf() { return current_tf; }
 
 
-bool Decompiler::write_textdump(const std::filesystem::path& output_dir) {
+bool Decompiler::write_textdump(const fs::path& infilepath, const std::filesystem::path& output_dir) {
     std::string output;
 
     output += _game;
@@ -413,7 +414,7 @@ bool Decompiler::write_textdump(const std::filesystem::path& output_dir) {
         output += '\n';
     }
 
-    fs::path filename = current_tf.getName() + ".txt";
+    std::string filename = infilepath.filename().string() + ".txt";
     fs::path output_file = output_dir / filename;
     if (!fs::exists(output_dir)) fs::create_directories(output_dir);
 
